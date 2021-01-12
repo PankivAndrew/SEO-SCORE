@@ -28,18 +28,11 @@ class HTMLScrapper:
     def get_text(content):
         soup = BeautifulSoup(content, 'html.parser')
 
-        description_div = soup.find("div", {"id": "description"})
-        if description_div is None:
+        seo_text_description = soup.find("div", {"id": "seo-text-description"})
+        if seo_text_description is None:
             raise Exception("Can`t find description div")
 
-        content_div = description_div.find("div", {"class": "localized-desc__content"})
-        if content_div is None:
-            raise Exception("Can`t find description localized content")
-
-        text_div = content_div.find("div", {"class": "localized-desc__description-text"})
-        if text_div is None:
-            raise Exception("Can`t find text")
-        return text_div.text
+        return seo_text_description.text
 
     @staticmethod
     def get_html(url):
@@ -52,11 +45,6 @@ class HTMLScrapper:
             accept_cookies_div = accept_cookies_div[0]
             accept_cookies_button = accept_cookies_div.find_element_by_class_name('cookie-consent-confirm-box')
             accept_cookies_button.click()
-        load_more_div = browser.find_elements_by_class_name('localized-desc__original_desc_read_more')
-        if len(load_more_div) != 0:
-            load_more_div = load_more_div[0]
-            load_more_a = load_more_div.find_element_by_css_selector('a')
-            load_more_a.click()
         html = browser.page_source
         browser.quit()
         return html

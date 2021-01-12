@@ -3,3 +3,4 @@ venv
 __pycache__
 .idea
 test_field.py
+geckodriver.log
