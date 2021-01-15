@@ -4,3 +4,4 @@ __pycache__
 .idea
 test_field.py
 geckodriver.log
+src/scorer/.env

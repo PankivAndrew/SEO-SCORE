@@ -1,4 +1,5 @@
 import requests
+import string
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
@@ -24,15 +25,31 @@ class HTMLScrapper:
             return
         return text
 
-    @staticmethod
-    def get_text(content):
+    def translate_text(self, text, target_lang, source_lang='en'):
+        resp = requests.post(self.config.TRANSLATE_URL,
+                             json={
+                                 'description': text,
+                                 'title': 'seo-score',
+                                 'source_locale': source_lang,
+                                 'target_locale': target_lang
+                             })
+        if resp.status_code != 200:
+            raise Exception('Can`t translate text')
+        return resp.json().get('description')
+
+    def get_text(self, content):
         soup = BeautifulSoup(content, 'html.parser')
 
         seo_text_description = soup.find("div", {"id": "seo-text-description"})
         if seo_text_description is None:
-            raise Exception("Can`t find description div")
+            raise Exception("Can`t find seo description div")
 
-        return seo_text_description.text
+        heading_divs = seo_text_description.findAll('h2')
+        if len(heading_divs) >= 2:
+            return self.clean_text(seo_text_description.text.lower()),\
+                   self.clean_text(heading_divs[0].text.lower()),\
+                   self.clean_text(heading_divs[1].text.lower())
+        raise Exception("Can`t find heading divs")
 
     @staticmethod
     def get_html(url):
@@ -49,14 +66,6 @@ class HTMLScrapper:
         browser.quit()
         return html
 
-    def translate_text(self, text, target_lang, source_lang='en'):
-        resp = requests.post(self.config.TRANSLATE_URL,
-                             json={
-                                 'description': text,
-                                 'title': 'seo-score',
-                                 'source_locale': source_lang,
-                                 'target_locale': target_lang
-                             })
-        if resp.status_code != 200:
-            raise Exception('Can`t translate text')
-        return resp.json().get('description')
+    @staticmethod
+    def clean_text(text):
+        return ''.join(char for char in text if char not in string.punctuation)
